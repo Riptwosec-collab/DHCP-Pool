@@ -3,14 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DHCP Automation</title>
+  <title>DHCP Automation PRO v2.1</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
   <style>
     body { font-family: 'Segoe UI', system-ui, sans-serif; }
     .terminal { font-family: ui-monospace, monospace; }
-    .pool-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-    .pool-card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1); }
+    .pool-card { 
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    }
+    .pool-card:hover { 
+      transform: translateY(-6px); 
+      box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.4); 
+    }
   </style>
 </head>
 <body class="bg-gray-950 text-white min-h-screen p-6">
@@ -20,11 +25,11 @@
   <!-- Header -->
   <div class="bg-gradient-to-r from-blue-900 via-indigo-900 to-gray-900 rounded-3xl p-8 shadow-2xl">
     <div class="flex flex-wrap justify-between items-center gap-4">
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-4">
         <span class="text-5xl">🌐</span>
         <div>
-          <h1 class="text-4xl font-bold">DHCP Automation </h1>
-          <p class="text-gray-400">Cisco DHCP Pool Generator</p>
+          <h1 class="text-4xl font-bold">DHCP Automation PRO</h1>
+          <p class="text-gray-400">Cisco DHCP Pool Generator • v2.1</p>
         </div>
       </div>
       <div class="flex gap-3">
@@ -41,7 +46,7 @@
     </div>
   </div>
 
-  <!-- DNS -->
+  <!-- DNS Server -->
   <div class="bg-gray-900 rounded-3xl p-5 flex items-center gap-4">
     <span class="font-bold w-32 flex items-center gap-2"><i class="fas fa-server"></i> DNS Server:</span>
     <input id="dnsInput" value="10.20.100.2 10.26.100.2" onchange="updateConfig()"
@@ -52,15 +57,26 @@
   <input id="searchInput" placeholder="🔍 Search IP, MAC or Name..." onkeyup="filterPools()" 
          class="w-full p-4 rounded-2xl bg-gray-900 border border-gray-700 focus:outline-none focus:border-blue-500 text-base">
 
-  <!-- Mass Import -->
+  <!-- Mass Pool Import -->
   <div class="bg-gray-900 rounded-3xl p-6">
     <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i class="fas fa-file-import"></i> Mass Pool Import</h2>
-    <!-- Grid เดิม (เหมือนเดิม) -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div><p class="mb-2 font-bold">MAC Address</p><textarea id="bulkMac" rows="8" class="w-full p-4 rounded-2xl bg-gray-950 border border-gray-700 font-mono" placeholder="aabbccddeeff"></textarea></div>
-      <div><p class="mb-2 font-bold">IP Address</p><textarea id="bulkIp" rows="8" class="w-full p-4 rounded-2xl bg-gray-950 border border-gray-700 font-mono" placeholder="10.10.10.50"></textarea></div>
-      <div><p class="mb-2 font-bold">Gateway</p><textarea id="bulkGateway" rows="8" class="w-full p-4 rounded-2xl bg-gray-950 border border-gray-700 font-mono" placeholder="10.10.10.1"></textarea></div>
-      <div><p class="mb-2 font-bold">VLAN</p><textarea id="bulkVlan" rows="8" class="w-full p-4 rounded-2xl bg-gray-950 border border-gray-700 font-mono" placeholder="2"></textarea></div>
+      <div>
+        <p class="mb-2 font-bold">MAC Address</p>
+        <textarea id="bulkMac" rows="8" class="w-full p-4 rounded-2xl bg-gray-950 border border-gray-700 font-mono" placeholder="aabbccddeeff"></textarea>
+      </div>
+      <div>
+        <p class="mb-2 font-bold">IP Address</p>
+        <textarea id="bulkIp" rows="8" class="w-full p-4 rounded-2xl bg-gray-950 border border-gray-700 font-mono" placeholder="10.10.10.50"></textarea>
+      </div>
+      <div>
+        <p class="mb-2 font-bold">Gateway</p>
+        <textarea id="bulkGateway" rows="8" class="w-full p-4 rounded-2xl bg-gray-950 border border-gray-700 font-mono" placeholder="10.10.10.1"></textarea>
+      </div>
+      <div>
+        <p class="mb-2 font-bold">VLAN</p>
+        <textarea id="bulkVlan" rows="8" class="w-full p-4 rounded-2xl bg-gray-950 border border-gray-700 font-mono" placeholder="2"></textarea>
+      </div>
     </div>
     <button onclick="bulkImport()" class="mt-4 bg-cyan-600 hover:bg-cyan-500 px-6 py-3 rounded-2xl font-medium flex items-center gap-2">
       <i class="fas fa-bolt"></i> Generate & Add Pools
@@ -68,10 +84,10 @@
   </div>
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <!-- Pools -->
+    <!-- Left: Pools -->
     <div id="poolsContainer" class="space-y-4"></div>
 
-    <!-- Output -->
+    <!-- Right: Output -->
     <div class="bg-black border border-gray-800 rounded-3xl overflow-hidden">
       <div class="flex justify-between items-center p-5 border-b border-gray-700">
         <h2 class="font-bold flex items-center gap-2"><i class="fas fa-terminal"></i> Cisco Configuration Output</h2>
@@ -85,6 +101,24 @@
 
       <pre id="configOutput" class="terminal text-green-400 p-6 text-sm overflow-auto min-h-[600px] whitespace-pre-wrap bg-gray-950"></pre>
       <div id="message" class="text-center py-3 text-emerald-400 text-sm"></div>
+    </div>
+  </div>
+
+  <!-- About Developer -->
+  <div class="bg-gray-900 rounded-3xl p-8 text-center">
+    <h2 class="text-2xl font-bold mb-4 flex items-center justify-center gap-3">
+      <i class="fas fa-user-circle text-blue-400"></i> About Developer
+    </h2>
+    <p class="text-gray-400 mb-4">เครื่องมือนี้พัฒนาขึ้นเพื่อช่วยงาน Network Engineer ให้ทำงานเร็วและมีประสิทธิภาพมากขึ้น</p>
+    <div class="flex justify-center gap-6 text-sm">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-code text-blue-400"></i>
+        <span>พัฒนาโดย: <strong>[ใส่ชื่อคุณที่นี่]</strong></span>
+      </div>
+      <div class="flex items-center gap-2">
+        <i class="fas fa-calendar text-blue-400"></i>
+        <span>อัพเดท: พฤษภาคม 2568</span>
+      </div>
     </div>
   </div>
 </div>
@@ -123,37 +157,34 @@ function isValidIP(ip) {
   return /^(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)){3}$/.test(ip);
 }
 
-// Validation
 function getPoolStatus(pool) {
   const macClean = cleanMac(pool.mac);
   const isMacValid = macClean.length >= 12;
   const isIpValid = isValidIP(pool.ip);
   const isGwValid = isValidIP(pool.gateway);
-  const isValid = isMacValid && isIpValid && isGwValid;
-  return { isValid, isMacValid, isIpValid, isGwValid };
+  return { isValid: isMacValid && isIpValid && isGwValid, isMacValid, isIpValid, isGwValid };
 }
 
-// Render Pools with Validation
 function renderPools() {
   const container = document.getElementById('poolsContainer');
   let html = '';
   pools.forEach((pool, index) => {
     const status = getPoolStatus(pool);
     html += `
-      <div class="pool-card bg-gray-900 rounded-3xl p-6 border ${status.isValid ? 'border-green-500/30' : 'border-red-500/30'}">
+      <div class="pool-card bg-gray-900 rounded-3xl p-6 border ${status.isValid ? 'border-green-500/40' : 'border-red-500/40'}">
         <div class="flex justify-between items-start mb-4">
           <div class="flex items-center gap-3">
             <span class="text-2xl">${status.isValid ? '✅' : '⚠️'}</span>
             <div>
               <h3 class="text-xl font-bold">Pool #${index + 1}</h3>
-              <span class="text-xs px-2.5 py-1 rounded-full ${status.isValid ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
-                ${status.isValid ? 'Ready' : 'Incomplete'}
+              <span class="text-xs px-3 py-1 rounded-full ${status.isValid ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
+                ${status.isValid ? 'พร้อมใช้งาน' : 'ข้อมูลไม่ครบ'}
               </span>
             </div>
           </div>
-          <div class="flex gap-3">
-            <button onclick="copySingle(${pool.id})" class="text-blue-400 hover:text-blue-300"><i class="fas fa-copy"></i></button>
-            <button onclick="removePool(${pool.id})" class="text-red-500 hover:text-red-600"><i class="fas fa-trash"></i></button>
+          <div class="flex gap-4">
+            <button onclick="copySingle(${pool.id})" class="text-blue-400 hover:text-blue-300 transition"><i class="fas fa-copy"></i></button>
+            <button onclick="removePool(${pool.id})" class="text-red-500 hover:text-red-600 transition"><i class="fas fa-trash"></i></button>
           </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -177,8 +208,17 @@ function updateField(id, field, value) {
   updateConfig();
 }
 
-function addPool() { /* ... เหมือนเดิม */ 
-  pools.push({ id: Date.now(), name: "Computer", mac: "", ip: "", subnet: "255.255.255.0", gateway: pools[0]?.gateway || "", vlan: pools[0]?.vlan || "2", interfaceName: pools[0]?.interfaceName || "PO1" });
+function addPool() {
+  pools.push({
+    id: Date.now(),
+    name: "Computer",
+    mac: "",
+    ip: "",
+    subnet: "255.255.255.0",
+    gateway: pools[0]?.gateway || "",
+    vlan: pools[0]?.vlan || "2",
+    interfaceName: pools[0]?.interfaceName || "PO1"
+  });
   renderPools();
   updateConfig();
 }
@@ -189,53 +229,69 @@ function removePool(id) {
   updateConfig();
 }
 
-// Auto Fill, Bulk Import, Generate Config, Copy Functions (เหมือนเวอร์ชันก่อนหน้า)
-function autoFillAll() { /* คงเดิม */ 
-  if (!pools.length) return;
+function autoFillAll() {
+  if (pools.length === 0) return;
   const first = pools[0];
   let prefix = "", start = 0;
   if (first.ip) {
     const s = first.ip.split(".");
     if (s.length === 4) { prefix = `${s[0]}.${s[1]}.${s[2]}`; start = Number(s[3]); }
   }
-  pools = pools.map((p, i) => ({...p, gateway: first.gateway || p.gateway, vlan: first.vlan || p.vlan, subnet: first.subnet || p.subnet, interfaceName: first.interfaceName || p.interfaceName, ip: prefix ? `${prefix}.${start + i}` : p.ip }));
+  pools = pools.map((p, i) => ({
+    ...p,
+    gateway: first.gateway || p.gateway,
+    vlan: first.vlan || p.vlan,
+    subnet: first.subnet || p.subnet,
+    interfaceName: first.interfaceName || p.interfaceName,
+    ip: prefix ? `${prefix}.${start + i}` : p.ip
+  }));
   renderPools();
   updateConfig();
   showMessage("Auto Fill สำเร็จ ✅");
 }
 
-function bulkImport() { /* คงเดิม */ 
-  // (ย่อ) ใช้ logic เดิม
-  const macLines = document.getElementById('bulkMac').value.trim().split("\n").map(l=>l.trim()).filter(Boolean);
-  const ipLines = document.getElementById('bulkIp').value.trim().split("\n").map(l=>l.trim()).filter(Boolean);
-  const gatewayLines = document.getElementById('bulkGateway').value.trim().split("\n").map(l=>l.trim()).filter(Boolean);
-  const vlanLines = document.getElementById('bulkVlan').value.trim().split("\n").map(l=>l.trim()).filter(Boolean);
+function bulkImport() {
+  const macLines = document.getElementById('bulkMac').value.trim().split("\n").map(l => l.trim()).filter(Boolean);
+  const ipLines = document.getElementById('bulkIp').value.trim().split("\n").map(l => l.trim()).filter(Boolean);
+  const gatewayLines = document.getElementById('bulkGateway').value.trim().split("\n").map(l => l.trim()).filter(Boolean);
+  const vlanLines = document.getElementById('bulkVlan').value.trim().split("\n").map(l => l.trim()).filter(Boolean);
 
   if (macLines.length === 0 || ipLines.length === 0) return showMessage("กรุณากรอก MAC และ IP");
   if (macLines.length !== ipLines.length) return showMessage("จำนวน MAC และ IP ไม่ตรงกัน");
 
-  const defaultGateway = gatewayLines[0] || (pools[0]?.gateway || "10.10.10.1");
-  const newPools = macLines.map((mac,i) => ({
-    id: Date.now()+i, name:"Computer", mac:formatMac(mac), ip:ipLines[i]||"", subnet:"255.255.255.0",
-    gateway: gatewayLines[i]||defaultGateway, vlan:vlanLines[i]||(pools[0]?.vlan||"2"), interfaceName: pools[0]?.interfaceName||"PO1"
+  const defaultGateway = gatewayLines[0] || (pools[0] ? pools[0].gateway : "10.10.10.1");
+
+  const newPools = macLines.map((mac, i) => ({
+    id: Date.now() + i,
+    name: "Computer",
+    mac: formatMac(mac),
+    ip: ipLines[i] || "",
+    subnet: "255.255.255.0",
+    gateway: gatewayLines[i] || defaultGateway,
+    vlan: vlanLines[i] || (pools[0] ? pools[0].vlan : "2"),
+    interfaceName: pools[0] ? pools[0].interfaceName : "PO1"
   }));
 
   pools = [...pools, ...newPools];
   renderPools();
   updateConfig();
   showMessage(`เพิ่ม ${newPools.length} Pools สำเร็จ ✅`);
-  document.getElementById('bulkMac').value = document.getElementById('bulkIp').value = document.getElementById('bulkGateway').value = document.getElementById('bulkVlan').value = '';
+
+  document.getElementById('bulkMac').value = '';
+  document.getElementById('bulkIp').value = '';
+  document.getElementById('bulkGateway').value = '';
+  document.getElementById('bulkVlan').value = '';
 }
 
-// Generate Config + Copy (เหมือนเวอร์ชันก่อนหน้า)
-function generateConfig() { /* ... คงเดิม */ 
-  // (ใช้โค้ด generateConfig จากเวอร์ชันก่อนหน้า)
+function generateConfig() {
   if (pools.length === 0) return "ยังไม่มี Pool";
+
   const validPools = pools.filter(p => {
     const macClean = cleanMac(p.mac);
     return macClean.length >= 12 && p.ip && isValidIP(p.ip) && p.gateway && isValidIP(p.gateway);
   });
-  if (validPools.length === 0) return "กรุณากรอกข้อมูลให้ครบ (MAC, IP, Gateway)";
+
+  if (validPools.length === 0) return "กรุณากรอกข้อมูลให้ครบ (MAC 12 ตัว, IP และ Gateway)";
 
   const dns = document.getElementById('dnsInput').value.trim() || "10.20.100.2 10.26.100.2";
   const includeBinding = document.getElementById('includeSourceBinding').checked;
@@ -243,8 +299,22 @@ function generateConfig() { /* ... คงเดิม */
   return validPools.map(p => {
     const macClean = cleanMac(p.mac).slice(0, 12).padEnd(12, "0");
     const dotMac = `01${macClean}`.match(/.{1,4}/g)?.join(".") || "";
-    let config = [`ip dhcp pool ${p.ip}_${p.name}`, ` host ${p.ip} ${p.subnet}`, ` client-identifier ${dotMac}`, ` default-router ${p.gateway}`, ` dns-server ${dns}`, ``, ` update arp`];
-    if (includeBinding) config.push(``, ` ip source binding ${dotMac} vlan ${p.vlan} ${p.ip} interface ${p.interfaceName}`);
+
+    let config = [
+      `ip dhcp pool ${p.ip}_${p.name}`,
+      ` host ${p.ip} ${p.subnet}`,
+      ` client-identifier ${dotMac}`,
+      ` default-router ${p.gateway}`,
+      ` dns-server ${dns}`,
+      ``,
+      ` update arp`
+    ];
+
+    if (includeBinding) {
+      config.push(``);
+      config.push(` ip source binding ${dotMac} vlan ${p.vlan} ${p.ip} interface ${p.interfaceName}`);
+    }
+
     return config.join("\n");
   }).join("\n\n!\n\n");
 }
@@ -258,13 +328,14 @@ async function copyToClipboard(text) {
     await navigator.clipboard.writeText(text);
     return true;
   } catch {
-    const ta = document.createElement("textarea");
-    ta.value = text;
-    ta.style.position = "fixed";
-    document.body.appendChild(ta);
-    ta.select();
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.left = "-999999px";
+    document.body.appendChild(textarea);
+    textarea.select();
     document.execCommand('copy');
-    document.body.removeChild(ta);
+    document.body.removeChild(textarea);
     return true;
   }
 }
@@ -272,6 +343,7 @@ async function copyToClipboard(text) {
 async function copyAllConfig() {
   const config = generateConfig();
   if (config.includes("กรุณากรอก")) return showMessage("ยังไม่มี Config ที่สมบูรณ์");
+  
   const success = await copyToClipboard(config);
   showMessage(success ? "✅ Copy All สำเร็จ" : "❌ Copy ไม่สำเร็จ");
 }
